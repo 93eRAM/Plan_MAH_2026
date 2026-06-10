@@ -1,1 +1,446 @@
-<!DOCTYPE html> <html lang="fr"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> <title>MAH du 93e RAM</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" /> <style> :root { --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3250; --text: #eef0f8; --text-muted: #7c82a8; --accent: #e8c547; --cat-depart: #3ecf8e; --cat-parcours: #4a9eff; --cat-arrivee: #ef5b5b; --menu-h: 52px; --panel-h: 260px; --header-h: 48px; } * { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: 'tahoma', sans-serif; background: var(--bg); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; } header { height: var(--header-h); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; z-index: 100; } header h1 { font-family: 'tahoma', sans-serif; font-weight: 800; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); } .legend { display: flex; gap: 10px; } .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-muted); } .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; } #map { flex: 1; width: 100%; z-index: 1; } #panel { height: var(--panel-h); background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 100; } .tabs { display: flex; height: var(--menu-h); border-bottom: 1px solid var(--border); flex-shrink: 0; } .tab-btn { flex: 1; background: none; border: none; color: var(--text-muted); font-family: 'tahoma', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; position: relative; transition: color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; } .tab-btn::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 2px; border-radius: 2px 2px 0 0; background: transparent; transition: background 0.2s; } .tab-btn.active { color: var(--text); } .tab-btn.active::after { background: var(--accent); } .tab-dot { width: 7px; height: 7px; border-radius: 50%; } .tab-content { display: none; overflow-y: auto; flex: 1; padding: 6px 8px; gap: 4px; flex-direction: column; } .tab-content.active { display: flex; } .stand-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; background: var(--surface2); border: 1px solid transparent; transition: border-color 0.15s, background 0.15s; flex-shrink: 0; } .stand-item:hover { border-color: var(--border); } .stand-item.active { border-color: var(--accent); background: #22263a; } .stand-badge { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: 'tahoma', sans-serif; font-size: 10px; font-weight: 800; color: #fff; flex-shrink: 0; } .stand-info { flex: 1; min-width: 0; } .stand-name { font-family: 'tahoma', sans-serif; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .stand-desc { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; } .stand-num { font-family: 'tahoma', sans-serif; font-size: 10px; font-weight: 600; color: var(--text-muted); flex-shrink: 0; } .stand-popup { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 160px; max-width: 200px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); } .stand-popup-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } .stand-popup-badge { width: 24px; height: 24px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-family: 'tahoma', sans-serif; font-size: 9px; font-weight: 800; color: #fff; flex-shrink: 0; } .stand-popup-name { font-family: 'tahoma', sans-serif; font-size: 12px; font-weight: 700; line-height: 1.2; } .stand-popup-cat { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; } .stand-popup-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; } .leaflet-container { background: #1a1d27; } .leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: 8px !important; overflow: hidden; } .leaflet-control-zoom a { background: var(--surface) !important; color: var(--text) !important; border-bottom: 1px solid var(--border) !important; } .leaflet-control-zoom a:hover { background: var(--surface2) !important; } .leaflet-control-attribution { display: none; } .leaflet-popup-content-wrapper { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; } .leaflet-popup-content { margin: 0 !important; } .leaflet-popup-tip-container { display: none !important; } .leaflet-popup { bottom: 14px !important; } .user-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(232,197,71,0.3); animation: pulse 2s infinite; } @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(232,197,71,0.3); } 50% { box-shadow: 0 0 0 8px rgba(232,197,71,0.08); } } ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; } </style> </head> <body> <header> <h1>14<sup style="font-size: 0.4em;">e</sup> montée de l'Alpe d'Huez<br><span style="font-size: 0.6em;">au profit des blessés de l'armée de Terre</span></h1> <div class="legend"> <div class="legend-item"><div class="legend-dot" style="background:var(--cat-depart)"></div>Village départ</div> <div class="legend-item"><div class="legend-dot" style="background:var(--cat-parcours)"></div>Parcours</div> <div class="legend-item"><div class="legend-dot" style="background:var(--cat-arrivee)"></div>Village arrivée</div> </div> </header> <div id="map"></div> <div id="panel"> <div class="tabs"> <button class="tab-btn active" data-cat="depart" onclick="switchTab('depart')"> <span class="tab-dot" style="background:var(--cat-depart)"></span>Village départ </button> <button class="tab-btn" data-cat="parcours" onclick="switchTab('parcours')"> <span class="tab-dot" style="background:var(--cat-parcours)"></span>Parcours </button> <button class="tab-btn" data-cat="arrivee" onclick="switchTab('arrivee')"> <span class="tab-dot" style="background:var(--cat-arrivee)"></span>Village arrivée </button> </div> <div id="tab-depart" class="tab-content active"></div> <div id="tab-parcours" class="tab-content"></div> <div id="tab-arrivee" class="tab-content"></div> </div> <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script> <script> // ═══════════════════════════════════════ // TRACÉS GPX (intégrés directement) // ═══════════════════════════════════════ const GPX_ACCES_BUS = [[45.08882,6.07293],[45.08889,6.07304],[45.08892,6.07329],[45.08892,6.07437],[45.08896,6.07497],[45.08909,6.07495],[45.08919,6.0749],[45.08923,6.07497],[45.08928,6.07503],[45.08946,6.07521],[45.08951,6.07504]]; const GPX_DEPOSE_BUS = [[45.06305,6.02461],[45.06305,6.02468],[45.06311,6.02477],[45.06319,6.02481],[45.06308,6.0249],[45.06296,6.02498],[45.06297,6.02491],[45.06296,6.02498],[45.06264,6.02522],[45.0623,6.02548],[45.06236,6.02562],[45.0624,6.02583],[45.06233,6.02585],[45.06232,6.02584],[45.0623,6.02571],[45.06228,6.02567],[45.06221,6.02567],[45.06211,6.02572],[45.06173,6.026],[45.06172,6.02603],[45.06168,6.02617],[45.06166,6.02619],[45.06129,6.02647],[45.06124,6.02654],[45.06125,6.02658],[45.06135,6.02668],[45.06145,6.02683],[45.06168,6.02725],[45.06168,6.02726]]; const GPX_MONTEE = [[45.0622,6.02955],[45.06174,6.03054],[45.06152,6.03091],[45.06122,6.03197],[45.06099,6.03316],[45.06086,6.03353],[45.0585,6.03644],[45.05841,6.03664],[45.05876,6.03719],[45.05889,6.03739],[45.05905,6.03783],[45.05908,6.03795],[45.05915,6.03803],[45.05922,6.03806],[45.05934,6.03801],[45.05946,6.03787],[45.05963,6.03781],[45.05979,6.03778],[45.06031,6.03768],[45.06123,6.03747],[45.06157,6.03738],[45.0621,6.03709],[45.06231,6.03699],[45.06265,6.037],[45.06286,6.0371],[45.06299,6.03724],[45.06419,6.03892],[45.06437,6.03917],[45.065,6.04002],[45.06512,6.0401],[45.06526,6.04011],[45.06577,6.03992],[45.06666,6.03959],[45.06781,6.03941],[45.06817,6.03925],[45.06831,6.03924],[45.06872,6.0393],[45.06927,6.03915],[45.0696,6.03896],[45.06996,6.03878],[45.07025,6.0387],[45.07053,6.0387],[45.07142,6.03896],[45.07174,6.03898],[45.07185,6.03905],[45.07187,6.03918],[45.07184,6.03926],[45.07173,6.03929],[45.07117,6.03914],[45.07099,6.03913],[45.07062,6.03926],[45.07023,6.03954],[45.06986,6.04001],[45.06957,6.04031],[45.06931,6.04074],[45.06922,6.04084],[45.06885,6.04094],[45.06808,6.04113],[45.06716,6.04165],[45.06664,6.04196],[45.06642,6.04208],[45.0664,6.04217],[45.06644,6.04226],[45.06656,6.04222],[45.06754,6.04175],[45.06776,6.04178],[45.068,6.0419],[45.06802,6.04201],[45.06797,6.04208],[45.06788,6.04208],[45.06768,6.04193],[45.06749,6.04194],[45.06731,6.04207],[45.06696,6.04249],[45.06661,6.04276],[45.06596,6.04311],[45.06594,6.04322],[45.06597,6.0433],[45.06607,6.04333],[45.0663,6.04321],[45.06685,6.04306],[45.06717,6.04282],[45.0675,6.04282],[45.06765,6.0428],[45.06804,6.04263],[45.06832,6.04261],[45.06887,6.04268],[45.0689,6.0428],[45.06885,6.04289],[45.06874,6.04289],[45.0684,6.0428],[45.06823,6.04285],[45.0678,6.04321],[45.06723,6.04368],[45.06718,6.04378],[45.06718,6.04387],[45.06722,6.04398],[45.06768,6.04447],[45.06791,6.04461],[45.06826,6.04474],[45.06876,6.04486],[45.06889,6.04497],[45.06912,6.0453],[45.06926,6.04545],[45.06965,6.04571],[45.07001,6.04587],[45.07018,6.04609],[45.07057,6.04681],[45.07144,6.04766],[45.07185,6.04816],[45.07192,6.04816],[45.07198,6.04807],[45.07198,6.04796],[45.07174,6.04774],[45.07141,6.04734],[45.07115,6.04689],[45.07106,6.04659],[45.07104,6.04626],[45.0711,6.04506],[45.07103,6.04476],[45.07088,6.04441],[45.07089,6.04431],[45.07096,6.04425],[45.07103,6.04427],[45.07127,6.04477],[45.07134,6.04505],[45.07154,6.04618],[45.0717,6.04653],[45.07205,6.04695],[45.07293,6.04765],[45.07305,6.04769],[45.07336,6.04772],[45.07349,6.04783],[45.07358,6.04804],[45.07369,6.04861],[45.07366,6.04878],[45.07358,6.04894],[45.07339,6.0492],[45.07333,6.04939],[45.07326,6.0497],[45.07316,6.04993],[45.07244,6.05108],[45.07244,6.05118],[45.07248,6.05125],[45.07255,6.05126],[45.07261,6.0512],[45.07278,6.05086],[45.0736,6.05019],[45.07374,6.05002],[45.07396,6.04969],[45.0742,6.04958],[45.07455,6.04955],[45.0747,6.04945],[45.0748,6.0493],[45.07499,6.04876],[45.07502,6.04859],[45.07499,6.04837],[45.07482,6.04791],[45.07476,6.04773],[45.07477,6.04765],[45.07481,6.0476],[45.07488,6.0476],[45.07492,6.04767],[45.07497,6.04796],[45.07521,6.04859],[45.07525,6.0489],[45.07522,6.04963],[45.07514,6.04988],[45.07505,6.05001],[45.07488,6.0501],[45.07451,6.05024],[45.07442,6.05035],[45.07428,6.05068],[45.07357,6.05167],[45.07323,6.05198],[45.0732,6.05205],[45.07323,6.05216],[45.0733,6.05217],[45.07351,6.05193],[45.07392,6.05149],[45.07451,6.05096],[45.07482,6.05081],[45.07522,6.0507],[45.07539,6.05064],[45.07576,6.05035],[45.07589,6.0502],[45.07603,6.04976],[45.07619,6.0493],[45.07637,6.04888],[45.07638,6.04869],[45.07633,6.04836],[45.07628,6.04808],[45.0764,6.04765],[45.07655,6.04729],[45.07665,6.04733],[45.07667,6.04743],[45.07651,6.04783],[45.07649,6.04804],[45.07656,6.04832],[45.0767,6.04866],[45.07673,6.04891],[45.07671,6.04947],[45.07657,6.04992],[45.07652,6.05017],[45.07647,6.05071],[45.07639,6.05094],[45.07607,6.05144],[45.07592,6.05161],[45.07519,6.0521],[45.07486,6.05221],[45.07478,6.0523],[45.07476,6.05239],[45.07479,6.05248],[45.07485,6.05251],[45.07493,6.05248],[45.07506,6.05234],[45.07523,6.05222],[45.07576,6.05199],[45.07613,6.05191],[45.07662,6.05176],[45.07679,6.05165],[45.07688,6.05155],[45.07711,6.0512],[45.07733,6.05073],[45.07773,6.05011],[45.07805,6.04948],[45.07806,6.0493],[45.07795,6.04898],[45.07793,6.04875],[45.07794,6.04844],[45.0779,6.04822],[45.07781,6.0479],[45.07785,6.04781],[45.07793,6.04781],[45.07799,6.04792],[45.07805,6.0483],[45.07817,6.04868],[45.07841,6.0492],[45.07844,6.04934],[45.07843,6.04981],[45.07838,6.05014],[45.07783,6.05171],[45.07774,6.05212],[45.07766,6.05236],[45.07738,6.05285],[45.07708,6.05317],[45.07706,6.05327],[45.07709,6.05343],[45.07717,6.05352],[45.07723,6.05355],[45.0776,6.05362],[45.07789,6.05384],[45.07917,6.05466],[45.07936,6.0547],[45.07959,6.05463],[45.07974,6.05463],[45.08054,6.05484],[45.08068,6.05494],[45.0808,6.05518],[45.08082,6.05532],[45.08079,6.05544],[45.08073,6.05554],[45.0804,6.05569],[45.08024,6.05581],[45.08016,6.05597],[45.0801,6.05626],[45.08006,6.05661],[45.08007,6.0568],[45.08012,6.057],[45.08063,6.05827],[45.08083,6.05873],[45.0809,6.05881],[45.08108,6.05909],[45.08122,6.05951],[45.0813,6.05974],[45.0815,6.06005],[45.08163,6.06045],[45.0818,6.06105],[45.08199,6.06179],[45.08217,6.06227],[45.08227,6.06232],[45.08234,6.06224],[45.08234,6.06212],[45.0821,6.06162],[45.08216,6.06047],[45.08221,6.05899],[45.08223,6.05867],[45.08224,6.05817],[45.0823,6.05791],[45.08239,6.05776],[45.08251,6.05766],[45.08274,6.0576],[45.08319,6.05758],[45.08358,6.05747],[45.08366,6.0575],[45.08369,6.05761],[45.08364,6.05772],[45.08336,6.05794],[45.08321,6.05818],[45.08306,6.05861],[45.08301,6.05888],[45.08301,6.05932],[45.08304,6.05989],[45.0832,6.06073],[45.08348,6.06215],[45.08349,6.06252],[45.08357,6.06264],[45.08364,6.0626],[45.08366,6.06251],[45.08359,6.06196],[45.08361,6.06146],[45.08377,6.06101],[45.08396,6.06059],[45.08414,6.06037],[45.08435,6.06024],[45.08477,6.06012],[45.08515,6.06003],[45.08536,6.05994],[45.08578,6.05963],[45.08662,6.05875],[45.08692,6.05851],[45.08728,6.05826],[45.08751,6.05808],[45.08769,6.05783],[45.08798,6.05738],[45.08827,6.05687],[45.08835,6.05654],[45.08834,6.05639],[45.08822,6.05613],[45.08811,6.05595],[45.08812,6.05587],[45.08816,6.05582],[45.08836,6.05599],[45.08896,6.05643],[45.08905,6.05665],[45.08914,6.05722],[45.08915,6.05826],[45.08885,6.05988],[45.08868,6.06034],[45.08869,6.06047],[45.08875,6.06048],[45.08893,6.06024],[45.08949,6.05974],[45.08972,6.05948],[45.09052,6.05835],[45.09077,6.05794],[45.09122,6.05704],[45.09138,6.05648],[45.09141,6.0563],[45.09139,6.05576],[45.09136,6.05543],[45.09139,6.05536],[45.09147,6.05535],[45.09155,6.05544],[45.09158,6.05582],[45.09163,6.05615],[45.09183,6.05709],[45.09184,6.05738],[45.09168,6.05921],[45.09144,6.06041],[45.09125,6.06121],[45.09123,6.06138],[45.09105,6.06184],[45.09086,6.0626],[45.09075,6.06312],[45.09069,6.06382],[45.0906,6.06406],[45.09052,6.06433],[45.09046,6.06481],[45.09043,6.06512],[45.09045,6.06531],[45.0905,6.06539],[45.09062,6.06547],[45.09079,6.0655],[45.09092,6.06544],[45.09098,6.06534],[45.09101,6.06507],[45.09101,6.06475],[45.09109,6.06435],[45.09126,6.06392],[45.09165,6.06337],[45.09186,6.06308],[45.09191,6.06321],[45.09188,6.06354],[45.09189,6.06473],[45.09196,6.06536],[45.0921,6.06586],[45.0922,6.06624],[45.0921,6.06648],[45.09195,6.06654],[45.09149,6.06653],[45.09106,6.06652],[45.09092,6.06659],[45.09063,6.06689],[45.09055,6.06704],[45.09013,6.06823],[45.09011,6.06842],[45.09019,6.06911],[45.09017,6.06925],[45.09011,6.0693],[45.09009,6.06939],[45.09013,6.06948],[45.0902,6.06951],[45.09026,6.06961],[45.09037,6.07051],[45.09044,6.07132],[45.09042,6.07163],[45.09035,6.07173],[45.08961,6.07169],[45.08873,6.0718],[45.08854,6.07239]]; // ═══════════════════════════════════════ // DONNÉES — POI // ═══════════════════════════════════════ const CENTER = [45.076452, 6.051268]; const stands = [ // Village départ (01–16) { id: '01', nom: 'Zone de dépose des bus', categorie: 'depart', description: 'Dépose des bus — rejoindre le village départ à pied.', lat: 45.063010, lng: 6.024303 }, { id: '02', nom: 'Parking VHL 1', categorie: 'depart', description: 'Parking véhicules N°1.', lat: 45.062890, lng: 6.026848 }, { id: '03', nom: 'Parking VHL 2', categorie: 'depart', description: 'Parking véhicules N°2.', lat: 45.063229, lng: 6.026282 }, { id: '04', nom: 'Parking VHL 3', categorie: 'depart', description: 'Parking véhicules N°3.', lat: 45.063105, lng: 6.024391 }, { id: '05', nom: 'Parking VHL 4', categorie: 'depart', description: 'Parking véhicules N°4.', lat: 45.063461, lng: 6.023008 }, { id: '06', nom: 'Parking VHL 5', categorie: 'depart', description: 'Parking véhicules N°5.', lat: 45.060681, lng: 6.024122 }, { id: '07', nom: 'Parking VHL VIP', categorie: 'depart', description: 'Parking réservé VIP.', lat: 45.061480, lng: 6.023229 }, { id: '08', nom: "Pont d'accès piéton", categorie: 'depart', description: "Pont d'accès piéton au village départ.", lat: 45.061738, lng: 6.027050 }, { id: '09', nom: 'Village Départ', categorie: 'depart', description: 'Village départ — point central de rassemblement.', lat: 45.061494, lng: 6.027115 }, { id: '10', nom: "Café d'accueil", categorie: 'depart', description: "Café d'accueil pour les participants.", lat: 45.061494, lng: 6.027200 }, { id: '11', nom: 'Retrait dossards Marche + Course', categorie: 'depart', description: 'Retrait des dossards pour la marche et la course à pied.', lat: 45.061600, lng: 6.027400 }, { id: '12', nom: 'Retrait dossards vélo', categorie: 'depart', description: 'Retrait des dossards pour la course cycliste.', lat: 45.061700, lng: 6.027300 }, { id: '13', nom: 'WC', categorie: 'depart', description: 'Toilettes publiques.', lat: 45.061400, lng: 6.027500 }, { id: '14', nom: 'Sas de contrôle des départs', categorie: 'depart', description: 'Contrôle des dossards avant le départ.', lat: 45.061900, lng: 6.029000 }, { id: '15', nom: 'Arche de départ', categorie: 'depart', description: 'Arche officielle de départ.', lat: 45.062000, lng: 6.029400 }, { id: '16', nom: 'Départ du chrono (réel)', categorie: 'depart', description: 'Le chronomètre commence ici.', lat: 45.064277, lng: 6.039074 }, // Parcours (17–24) { id: '17', nom: 'Police municipale', categorie: 'parcours', description: 'Point de présence de la police municipale.', lat: 45.063500, lng: 6.032000 }, { id: '18', nom: 'Gendarmerie 1', categorie: 'parcours', description: 'Point de présence gendarmerie N°1.', lat: 45.065000, lng: 6.038000 }, { id: '19', nom: 'Gendarmerie 2', categorie: 'parcours', description: 'Point de présence gendarmerie N°2.', lat: 45.070000, lng: 6.045000 }, { id: '20', nom: 'Ravitaillement 1', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.067131, lng: 6.043949 }, { id: '21', nom: 'Ravitaillement 2', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.076442, lng: 6.048164 }, { id: '22', nom: 'Service médical', categorie: 'parcours', description: 'Présence des secouristes et service médical.', lat: 45.078000, lng: 6.052000 }, { id: '23', nom: 'Ravitaillement 3', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.080173, lng: 6.057293 }, { id: '24', nom: 'Ravitaillement 4', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.085000, lng: 6.063000 }, // Village arrivée (25–36) { id: '25', nom: "Arrivée MAH 2026 (arrêt chrono)", categorie: 'arrivee', description: 'Arrêt officiel du chronomètre.', lat: 45.090377, lng: 6.071327 }, { id: '26', nom: "Arrivée réelle + récupération t-shirts", categorie: 'arrivee', description: 'Arrivée réelle (PMM) — récupération des t-shirts et sacs vestiaires.', lat: 45.089715, lng: 6.074902 }, { id: '27', nom: 'Parc vélo', categorie: 'arrivee', description: 'Zone de stationnement sécurisé pour les vélos.', lat: 45.089500, lng: 6.073500 }, { id: '28', nom: 'Partenaires', categorie: 'arrivee', description: 'Stands partenaires : RaidLight, Unéo, Crédit Mutuel.', lat: 45.089200, lng: 6.073000 }, { id: '29', nom: 'Kiné / Ostéo', categorie: 'arrivee', description: 'Soins kinésithérapie et ostéopathie pour les participants.', lat: 45.089000, lng: 6.072800 }, { id: '30', nom: 'Photocall', categorie: 'arrivee', description: 'Bâche photo 3m x 4m — immortalisez votre arrivée !', lat: 45.088800, lng: 6.072600 }, { id: '31', nom: 'Car podium', categorie: 'arrivee', description: 'Scène podium pour les remises de prix.', lat: 45.088617, lng: 6.072327 }, { id: '32', nom: 'Zone restauration', categorie: 'arrivee', description: 'Restauration et boissons pour les participants.', lat: 45.088400, lng: 6.072100 }, { id: '33', nom: 'Chaîne buffet alimentation', categorie: 'arrivee', description: 'Buffet alimentation pour les participants.', lat: 45.088300, lng: 6.072000 }, { id: '34', nom: 'Popotte boissons', categorie: 'arrivee', description: 'Boissons et ravitaillement à l\'arrivée.', lat: 45.088617, lng: 6.073000 }, { id: '35', nom: 'Parking véhicules', categorie: 'arrivee', description: 'Parking véhicules village arrivée.', lat: 45.088565, lng: 6.073500 }, { id: '36', nom: 'Navette BUS AH → BO', categorie: 'arrivee', description: 'Navette gratuite Alpe d\'Huez → Bourg d\'Oisans.', lat: 45.088565, lng: 6.072774 }, { id: '37', nom: 'Service médical arrivée', categorie: 'arrivee', description: 'Présence des secouristes assurant la sécurité à l\'arrivée.', lat: 45.088200, lng: 6.071800 }, ]; // ═══════════════════════════════════════ // COULEURS // ═══════════════════════════════════════ const COLORS = { depart: '#3ecf8e', parcours: '#4a9eff', arrivee: '#ef5b5b', }; const CAT_LABELS = { depart: 'Village départ', parcours: 'Parcours', arrivee: "Village d'arrivée", }; // ═══════════════════════════════════════ // CARTE // ═══════════════════════════════════════ const map = L.map('map', { center: CENTER, zoom: 13, zoomControl: true, maxBounds: [ [CENTER[0] - 0.045, CENTER[1] - 0.060], [CENTER[0] + 0.045, CENTER[1] + 0.060], ], maxBoundsViscosity: 0.9, minZoom: 13, maxZoom: 19, }); L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '', maxZoom: 19, }).addTo(map); // ── Tracés GPX ── L.polyline(GPX_DEPOSE_BUS, { color: '#3ecf8e', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map); L.polyline(GPX_MONTEE, { color: '#e8c547', weight: 4, opacity: 0.9 }).addTo(map); L.polyline(GPX_ACCES_BUS, { color: '#ef5b5b', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map); // ── Géolocalisation utilisateur ── const userIcon = L.divIcon({ className: '', html: '<div class="user-dot"></div>', iconSize: [14, 14], iconAnchor: [7, 7], }); if (navigator.geolocation) { navigator.geolocation.watchPosition(pos => { const ll = [pos.coords.latitude, pos.coords.longitude]; if (!window._userMarker) { window._userMarker = L.marker(ll, { icon: userIcon, zIndexOffset: 1000 }).addTo(map); } else { window._userMarker.setLatLng(ll); } }, null, { enableHighAccuracy: true }); } // ═══════════════════════════════════════ // MARQUEURS STANDS // ═══════════════════════════════════════ const markers = {}; let activePopup = null; let activeStandId = null; function makeStandIcon(stand, isActive) { const color = COLORS[stand.categorie]; const border = isActive ? '#e8c547' : '#fff'; const size = isActive ? 34 : 28; const fs = isActive ? 10 : 9; return L.divIcon({ className: '', html: `<div style=" width:${size}px;height:${size}px; background:${color}; border:2px solid ${border}; border-radius:${size/2}px ${size/2}px ${size/2}px 2px; display:flex;align-items:center;justify-content:center; font-family:'tahoma',sans-serif;font-size:${fs}px;font-weight:800; color:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.5); ">${stand.id}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size], popupAnchor: [0, -(size + 8)], }); } function openStandPopup(stand) { const color = COLORS[stand.categorie]; if (activePopup) { map.closePopup(activePopup); } document.querySelectorAll('.stand-item').forEach(el => el.classList.remove('active')); const li = document.getElementById('li-' + stand.id); if (li) { li.classList.add('active'); const currentTab = document.querySelector('.tab-content.active'); if (!currentTab || currentTab.id !== 'tab-' + stand.categorie) { switchTab(stand.categorie); } setTimeout(() => li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 100); } if (activeStandId && markers[activeStandId]) { const prev = stands.find(s => s.id === activeStandId); if (prev) markers[prev.id].setIcon(makeStandIcon(prev, false)); } activeStandId = stand.id; markers[stand.id].setIcon(makeStandIcon(stand, true)); const popupContent = ` <div class="stand-popup"> <div class="stand-popup-header"> <div class="stand-popup-badge" style="background:${color}">${stand.id}</div> <div class="stand-popup-name">${stand.nom}</div> </div> <div class="stand-popup-cat" style="color:${color}">${CAT_LABELS[stand.categorie]}</div> <div class="stand-popup-desc">${stand.description}</div> </div>`; activePopup = L.popup({ closeButton: false, autoClose: false, closeOnClick: false, className: 'custom-popup', offset: [0, -60], autoPan: true, autoPanPaddingTopLeft: [10, 60], autoPanPaddingBottomRight: [10, 280], }) .setLatLng([stand.lat, stand.lng]) .setContent(popupContent) .openOn(map); } stands.forEach(stand => { const marker = L.marker([stand.lat, stand.lng], { icon: makeStandIcon(stand, false), }).addTo(map); marker.on('click', () => { map.setView([stand.lat, stand.lng], Math.max(map.getZoom(), 17), { animate: true }); setTimeout(() => openStandPopup(stand), 300); }); markers[stand.id] = marker; }); map.on('click', e => { if (!e.originalEvent.target.closest?.('.leaflet-marker-icon')) { if (activePopup) { map.closePopup(activePopup); activePopup = null; } if (activeStandId) { const prev = stands.find(s => s.id === activeStandId); if (prev) markers[prev.id].setIcon(makeStandIcon(prev, false)); activeStandId = null; } document.querySelectorAll('.stand-item').forEach(el => el.classList.remove('active')); } }); // ═══════════════════════════════════════ // LISTE DES STANDS // ═══════════════════════════════════════ ['depart', 'parcours', 'arrivee'].forEach(cat => { const container = document.getElementById('tab-' + cat); stands.filter(s => s.categorie === cat).forEach(stand => { const color = COLORS[stand.categorie]; const div = document.createElement('div'); div.className = 'stand-item'; div.id = 'li-' + stand.id; div.innerHTML = ` <div class="stand-badge" style="background:${color}">${stand.id}</div> <div class="stand-info"> <div class="stand-name">${stand.nom}</div> <div class="stand-desc">${stand.description}</div> </div> <div class="stand-num">#${stand.id}</div>`; div.addEventListener('click', () => { map.setView(CENTER, 13, { animate: true }); setTimeout(() => { map.setView([stand.lat, stand.lng], 18, { animate: true }); setTimeout(() => openStandPopup(stand), 500); }, 600); }); container.appendChild(div); }); }); // ═══════════════════════════════════════ // ONGLETS // ═══════════════════════════════════════ function switchTab(cat) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + cat)); } </script> </body> </html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MAH du 93e RAM</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+ <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --text: #eef0f8;
+      --text-muted: #7c82a8;
+      --accent: #e8c547;
+      --cat-depart: #3ecf8e;
+      --cat-parcours: #4a9eff;
+      --cat-arrivee: #ef5b5b;
+      --menu-h: 52px;
+      --panel-h: 260px;
+      --header-h: 48px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'tahoma', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-family: 'tahoma', sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .legend { display: flex; gap: 10px; }
+    .legend-item {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 10px; color: var(--text-muted);
+    }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    #map { flex: 1; width: 100%; z-index: 1; }
+    #panel {
+      height: var(--panel-h);
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0; z-index: 100;
+    }
+    .tabs {
+      display: flex; height: var(--menu-h);
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .tab-btn {
+      flex: 1; background: none; border: none;
+      color: var(--text-muted);
+      font-family: 'tahoma', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; position: relative; transition: color 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 20%; right: 20%;
+      height: 2px; border-radius: 2px 2px 0 0;
+      background: transparent; transition: background 0.2s;
+    }
+    .tab-btn.active { color: var(--text); }
+    .tab-btn.active::after { background: var(--accent); }
+    .tab-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .tab-content {
+      display: none; overflow-y: auto; flex: 1;
+      padding: 6px 8px; gap: 4px; flex-direction: column;
+    }
+    .tab-content.active { display: flex; }
+    .stand-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      background: var(--surface2); border: 1px solid transparent;
+      transition: border-color 0.15s, background 0.15s; flex-shrink: 0;
+    }
+    .stand-item:hover { border-color: var(--border); }
+    .stand-item.active { border-color: var(--accent); background: #22263a; }
+    .stand-badge {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'tahoma', sans-serif; font-size: 10px; font-weight: 800;
+      color: #fff; flex-shrink: 0;
+    }
+    .stand-info { flex: 1; min-width: 0; }
+    .stand-name {
+      font-family: 'tahoma', sans-serif; font-size: 12px; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .stand-desc {
+      font-size: 10px; color: var(--text-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;
+    }
+    .stand-num {
+      font-family: 'tahoma', sans-serif; font-size: 10px;
+      font-weight: 600; color: var(--text-muted); flex-shrink: 0;
+    }
+    .stand-popup {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 12px;
+      min-width: 160px; max-width: 200px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .stand-popup-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .stand-popup-badge {
+      width: 24px; height: 24px; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'tahoma', sans-serif; font-size: 9px; font-weight: 800;
+      color: #fff; flex-shrink: 0;
+    }
+    .stand-popup-name { font-family: 'tahoma', sans-serif; font-size: 12px; font-weight: 700; line-height: 1.2; }
+    .stand-popup-cat { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .stand-popup-desc { font-size: 10px; color: var(--text-muted); line-height: 1.4; }
+    .leaflet-container { background: #1a1d27; }
+    .leaflet-control-zoom { border: 1px solid var(--border) !important; border-radius: 8px !important; overflow: hidden; }
+    .leaflet-control-zoom a { background: var(--surface) !important; color: var(--text) !important; border-bottom: 1px solid var(--border) !important; }
+    .leaflet-control-zoom a:hover { background: var(--surface2) !important; }
+    .leaflet-control-attribution { display: none; }
+    .leaflet-popup-content-wrapper { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+    .leaflet-popup-content { margin: 0 !important; }
+    .leaflet-popup-tip-container { display: none !important; }
+    .leaflet-popup { bottom: 14px !important; }
+    .user-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--accent); border: 2px solid #fff;
+      box-shadow: 0 0 0 4px rgba(232,197,71,0.3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(232,197,71,0.3); }
+      50%       { box-shadow: 0 0 0 8px rgba(232,197,71,0.08); }
+    }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>14<sup style="font-size: 0.4em;">e</sup> montée de l'Alpe d'Huez<br><span style="font-size: 0.6em;">au profit des blessés de l'armée de Terre</span></h1>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-depart)"></div>Village départ</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-parcours)"></div>Parcours</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cat-arrivee)"></div>Village arrivée</div>
+  </div>
+</header>
+
+<div id="map"></div>
+
+<div id="panel">
+  <div class="tabs">
+    <button class="tab-btn active" data-cat="depart" onclick="switchTab('depart')">
+      <span class="tab-dot" style="background:var(--cat-depart)"></span>Village départ
+    </button>
+    <button class="tab-btn" data-cat="parcours" onclick="switchTab('parcours')">
+      <span class="tab-dot" style="background:var(--cat-parcours)"></span>Parcours
+    </button>
+    <button class="tab-btn" data-cat="arrivee" onclick="switchTab('arrivee')">
+      <span class="tab-dot" style="background:var(--cat-arrivee)"></span>Village arrivée
+    </button>
+  </div>
+  <div id="tab-depart"   class="tab-content active"></div>
+  <div id="tab-parcours" class="tab-content"></div>
+  <div id="tab-arrivee"  class="tab-content"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ═══════════════════════════════════════
+//  TRACÉS GPX (intégrés directement)
+// ═══════════════════════════════════════
+const GPX_ACCES_BUS = [[45.08882,6.07293],[45.08889,6.07304],[45.08892,6.07329],[45.08892,6.07437],[45.08896,6.07497],[45.08909,6.07495],[45.08919,6.0749],[45.08923,6.07497],[45.08928,6.07503],[45.08946,6.07521],[45.08951,6.07504]];
+const GPX_DEPOSE_BUS = [[45.06305,6.02461],[45.06305,6.02468],[45.06311,6.02477],[45.06319,6.02481],[45.06308,6.0249],[45.06296,6.02498],[45.06297,6.02491],[45.06296,6.02498],[45.06264,6.02522],[45.0623,6.02548],[45.06236,6.02562],[45.0624,6.02583],[45.06233,6.02585],[45.06232,6.02584],[45.0623,6.02571],[45.06228,6.02567],[45.06221,6.02567],[45.06211,6.02572],[45.06173,6.026],[45.06172,6.02603],[45.06168,6.02617],[45.06166,6.02619],[45.06129,6.02647],[45.06124,6.02654],[45.06125,6.02658],[45.06135,6.02668],[45.06145,6.02683],[45.06168,6.02725],[45.06168,6.02726]];
+const GPX_MONTEE = [[45.0622,6.02955],[45.06174,6.03054],[45.06152,6.03091],[45.06122,6.03197],[45.06099,6.03316],[45.06086,6.03353],[45.0585,6.03644],[45.05841,6.03664],[45.05876,6.03719],[45.05889,6.03739],[45.05905,6.03783],[45.05908,6.03795],[45.05915,6.03803],[45.05922,6.03806],[45.05934,6.03801],[45.05946,6.03787],[45.05963,6.03781],[45.05979,6.03778],[45.06031,6.03768],[45.06123,6.03747],[45.06157,6.03738],[45.0621,6.03709],[45.06231,6.03699],[45.06265,6.037],[45.06286,6.0371],[45.06299,6.03724],[45.06419,6.03892],[45.06437,6.03917],[45.065,6.04002],[45.06512,6.0401],[45.06526,6.04011],[45.06577,6.03992],[45.06666,6.03959],[45.06781,6.03941],[45.06817,6.03925],[45.06831,6.03924],[45.06872,6.0393],[45.06927,6.03915],[45.0696,6.03896],[45.06996,6.03878],[45.07025,6.0387],[45.07053,6.0387],[45.07142,6.03896],[45.07174,6.03898],[45.07185,6.03905],[45.07187,6.03918],[45.07184,6.03926],[45.07173,6.03929],[45.07117,6.03914],[45.07099,6.03913],[45.07062,6.03926],[45.07023,6.03954],[45.06986,6.04001],[45.06957,6.04031],[45.06931,6.04074],[45.06922,6.04084],[45.06885,6.04094],[45.06808,6.04113],[45.06716,6.04165],[45.06664,6.04196],[45.06642,6.04208],[45.0664,6.04217],[45.06644,6.04226],[45.06656,6.04222],[45.06754,6.04175],[45.06776,6.04178],[45.068,6.0419],[45.06802,6.04201],[45.06797,6.04208],[45.06788,6.04208],[45.06768,6.04193],[45.06749,6.04194],[45.06731,6.04207],[45.06696,6.04249],[45.06661,6.04276],[45.06596,6.04311],[45.06594,6.04322],[45.06597,6.0433],[45.06607,6.04333],[45.0663,6.04321],[45.06685,6.04306],[45.06717,6.04282],[45.0675,6.04282],[45.06765,6.0428],[45.06804,6.04263],[45.06832,6.04261],[45.06887,6.04268],[45.0689,6.0428],[45.06885,6.04289],[45.06874,6.04289],[45.0684,6.0428],[45.06823,6.04285],[45.0678,6.04321],[45.06723,6.04368],[45.06718,6.04378],[45.06718,6.04387],[45.06722,6.04398],[45.06768,6.04447],[45.06791,6.04461],[45.06826,6.04474],[45.06876,6.04486],[45.06889,6.04497],[45.06912,6.0453],[45.06926,6.04545],[45.06965,6.04571],[45.07001,6.04587],[45.07018,6.04609],[45.07057,6.04681],[45.07144,6.04766],[45.07185,6.04816],[45.07192,6.04816],[45.07198,6.04807],[45.07198,6.04796],[45.07174,6.04774],[45.07141,6.04734],[45.07115,6.04689],[45.07106,6.04659],[45.07104,6.04626],[45.0711,6.04506],[45.07103,6.04476],[45.07088,6.04441],[45.07089,6.04431],[45.07096,6.04425],[45.07103,6.04427],[45.07127,6.04477],[45.07134,6.04505],[45.07154,6.04618],[45.0717,6.04653],[45.07205,6.04695],[45.07293,6.04765],[45.07305,6.04769],[45.07336,6.04772],[45.07349,6.04783],[45.07358,6.04804],[45.07369,6.04861],[45.07366,6.04878],[45.07358,6.04894],[45.07339,6.0492],[45.07333,6.04939],[45.07326,6.0497],[45.07316,6.04993],[45.07244,6.05108],[45.07244,6.05118],[45.07248,6.05125],[45.07255,6.05126],[45.07261,6.0512],[45.07278,6.05086],[45.0736,6.05019],[45.07374,6.05002],[45.07396,6.04969],[45.0742,6.04958],[45.07455,6.04955],[45.0747,6.04945],[45.0748,6.0493],[45.07499,6.04876],[45.07502,6.04859],[45.07499,6.04837],[45.07482,6.04791],[45.07476,6.04773],[45.07477,6.04765],[45.07481,6.0476],[45.07488,6.0476],[45.07492,6.04767],[45.07497,6.04796],[45.07521,6.04859],[45.07525,6.0489],[45.07522,6.04963],[45.07514,6.04988],[45.07505,6.05001],[45.07488,6.0501],[45.07451,6.05024],[45.07442,6.05035],[45.07428,6.05068],[45.07357,6.05167],[45.07323,6.05198],[45.0732,6.05205],[45.07323,6.05216],[45.0733,6.05217],[45.07351,6.05193],[45.07392,6.05149],[45.07451,6.05096],[45.07482,6.05081],[45.07522,6.0507],[45.07539,6.05064],[45.07576,6.05035],[45.07589,6.0502],[45.07603,6.04976],[45.07619,6.0493],[45.07637,6.04888],[45.07638,6.04869],[45.07633,6.04836],[45.07628,6.04808],[45.0764,6.04765],[45.07655,6.04729],[45.07665,6.04733],[45.07667,6.04743],[45.07651,6.04783],[45.07649,6.04804],[45.07656,6.04832],[45.0767,6.04866],[45.07673,6.04891],[45.07671,6.04947],[45.07657,6.04992],[45.07652,6.05017],[45.07647,6.05071],[45.07639,6.05094],[45.07607,6.05144],[45.07592,6.05161],[45.07519,6.0521],[45.07486,6.05221],[45.07478,6.0523],[45.07476,6.05239],[45.07479,6.05248],[45.07485,6.05251],[45.07493,6.05248],[45.07506,6.05234],[45.07523,6.05222],[45.07576,6.05199],[45.07613,6.05191],[45.07662,6.05176],[45.07679,6.05165],[45.07688,6.05155],[45.07711,6.0512],[45.07733,6.05073],[45.07773,6.05011],[45.07805,6.04948],[45.07806,6.0493],[45.07795,6.04898],[45.07793,6.04875],[45.07794,6.04844],[45.0779,6.04822],[45.07781,6.0479],[45.07785,6.04781],[45.07793,6.04781],[45.07799,6.04792],[45.07805,6.0483],[45.07817,6.04868],[45.07841,6.0492],[45.07844,6.04934],[45.07843,6.04981],[45.07838,6.05014],[45.07783,6.05171],[45.07774,6.05212],[45.07766,6.05236],[45.07738,6.05285],[45.07708,6.05317],[45.07706,6.05327],[45.07709,6.05343],[45.07717,6.05352],[45.07723,6.05355],[45.0776,6.05362],[45.07789,6.05384],[45.07917,6.05466],[45.07936,6.0547],[45.07959,6.05463],[45.07974,6.05463],[45.08054,6.05484],[45.08068,6.05494],[45.0808,6.05518],[45.08082,6.05532],[45.08079,6.05544],[45.08073,6.05554],[45.0804,6.05569],[45.08024,6.05581],[45.08016,6.05597],[45.0801,6.05626],[45.08006,6.05661],[45.08007,6.0568],[45.08012,6.057],[45.08063,6.05827],[45.08083,6.05873],[45.0809,6.05881],[45.08108,6.05909],[45.08122,6.05951],[45.0813,6.05974],[45.0815,6.06005],[45.08163,6.06045],[45.0818,6.06105],[45.08199,6.06179],[45.08217,6.06227],[45.08227,6.06232],[45.08234,6.06224],[45.08234,6.06212],[45.0821,6.06162],[45.08216,6.06047],[45.08221,6.05899],[45.08223,6.05867],[45.08224,6.05817],[45.0823,6.05791],[45.08239,6.05776],[45.08251,6.05766],[45.08274,6.0576],[45.08319,6.05758],[45.08358,6.05747],[45.08366,6.0575],[45.08369,6.05761],[45.08364,6.05772],[45.08336,6.05794],[45.08321,6.05818],[45.08306,6.05861],[45.08301,6.05888],[45.08301,6.05932],[45.08304,6.05989],[45.0832,6.06073],[45.08348,6.06215],[45.08349,6.06252],[45.08357,6.06264],[45.08364,6.0626],[45.08366,6.06251],[45.08359,6.06196],[45.08361,6.06146],[45.08377,6.06101],[45.08396,6.06059],[45.08414,6.06037],[45.08435,6.06024],[45.08477,6.06012],[45.08515,6.06003],[45.08536,6.05994],[45.08578,6.05963],[45.08662,6.05875],[45.08692,6.05851],[45.08728,6.05826],[45.08751,6.05808],[45.08769,6.05783],[45.08798,6.05738],[45.08827,6.05687],[45.08835,6.05654],[45.08834,6.05639],[45.08822,6.05613],[45.08811,6.05595],[45.08812,6.05587],[45.08816,6.05582],[45.08836,6.05599],[45.08896,6.05643],[45.08905,6.05665],[45.08914,6.05722],[45.08915,6.05826],[45.08885,6.05988],[45.08868,6.06034],[45.08869,6.06047],[45.08875,6.06048],[45.08893,6.06024],[45.08949,6.05974],[45.08972,6.05948],[45.09052,6.05835],[45.09077,6.05794],[45.09122,6.05704],[45.09138,6.05648],[45.09141,6.0563],[45.09139,6.05576],[45.09136,6.05543],[45.09139,6.05536],[45.09147,6.05535],[45.09155,6.05544],[45.09158,6.05582],[45.09163,6.05615],[45.09183,6.05709],[45.09184,6.05738],[45.09168,6.05921],[45.09144,6.06041],[45.09125,6.06121],[45.09123,6.06138],[45.09105,6.06184],[45.09086,6.0626],[45.09075,6.06312],[45.09069,6.06382],[45.0906,6.06406],[45.09052,6.06433],[45.09046,6.06481],[45.09043,6.06512],[45.09045,6.06531],[45.0905,6.06539],[45.09062,6.06547],[45.09079,6.0655],[45.09092,6.06544],[45.09098,6.06534],[45.09101,6.06507],[45.09101,6.06475],[45.09109,6.06435],[45.09126,6.06392],[45.09165,6.06337],[45.09186,6.06308],[45.09191,6.06321],[45.09188,6.06354],[45.09189,6.06473],[45.09196,6.06536],[45.0921,6.06586],[45.0922,6.06624],[45.0921,6.06648],[45.09195,6.06654],[45.09149,6.06653],[45.09106,6.06652],[45.09092,6.06659],[45.09063,6.06689],[45.09055,6.06704],[45.09013,6.06823],[45.09011,6.06842],[45.09019,6.06911],[45.09017,6.06925],[45.09011,6.0693],[45.09009,6.06939],[45.09013,6.06948],[45.0902,6.06951],[45.09026,6.06961],[45.09037,6.07051],[45.09044,6.07132],[45.09042,6.07163],[45.09035,6.07173],[45.08961,6.07169],[45.08873,6.0718],[45.08854,6.07239]];
+
+// ═══════════════════════════════════════
+//  DONNÉES — POI
+// ═══════════════════════════════════════
+const CENTER = [45.076452, 6.051268];
+
+const stands = [
+  // Village départ (01–16)
+  { id: '01', nom: 'Zone de dépose des bus', categorie: 'depart', description: 'Dépose des bus — rejoindre le village départ à pied.', lat: 45.063010, lng: 6.024303 },
+  { id: '02', nom: 'Parking VHL 1', categorie: 'depart', description: 'Parking véhicules N°1.', lat: 45.062890, lng: 6.026848 },
+  { id: '03', nom: 'Parking VHL 2', categorie: 'depart', description: 'Parking véhicules N°2.', lat: 45.063229, lng: 6.026282 },
+  { id: '04', nom: 'Parking VHL 3', categorie: 'depart', description: 'Parking véhicules N°3.', lat: 45.063105, lng: 6.024391 },
+  { id: '05', nom: 'Parking VHL 4', categorie: 'depart', description: 'Parking véhicules N°4.', lat: 45.063461, lng: 6.023008 },
+  { id: '06', nom: 'Parking VHL 5', categorie: 'depart', description: 'Parking véhicules N°5.', lat: 45.060681, lng: 6.024122 },
+  { id: '07', nom: 'Parking VHL VIP', categorie: 'depart', description: 'Parking réservé VIP.', lat: 45.061480, lng: 6.023229 },
+  { id: '08', nom: "Pont d'accès piéton", categorie: 'depart', description: "Pont d'accès piéton au village départ.", lat: 45.061738, lng: 6.027050 },
+  { id: '09', nom: 'Village Départ', categorie: 'depart', description: 'Village départ — point central de rassemblement.', lat: 45.061494, lng: 6.027115 },
+  { id: '10', nom: "Café d'accueil", categorie: 'depart', description: "Café d'accueil pour les participants.", lat: 45.061494, lng: 6.027200 },
+  { id: '11', nom: 'Retrait dossards Marche + Course', categorie: 'depart', description: 'Retrait des dossards pour la marche et la course à pied.', lat: 45.061600, lng: 6.027400 },
+  { id: '12', nom: 'Retrait dossards vélo', categorie: 'depart', description: 'Retrait des dossards pour la course cycliste.', lat: 45.061700, lng: 6.027300 },
+  { id: '13', nom: 'WC', categorie: 'depart', description: 'Toilettes publiques.', lat: 45.061400, lng: 6.027500 },
+  { id: '14', nom: 'Sas de contrôle des départs', categorie: 'depart', description: 'Contrôle des dossards avant le départ.', lat: 45.061900, lng: 6.029000 },
+  { id: '15', nom: 'Arche de départ', categorie: 'depart', description: 'Arche officielle de départ.', lat: 45.062000, lng: 6.029400 },
+  { id: '16', nom: 'Départ du chrono (réel)', categorie: 'depart', description: 'Le chronomètre commence ici.', lat: 45.064277, lng: 6.039074 },
+  // Parcours (17–24)
+  { id: '17', nom: 'Police municipale', categorie: 'parcours', description: 'Point de présence de la police municipale.', lat: 45.063500, lng: 6.032000 },
+  { id: '18', nom: 'Gendarmerie 1', categorie: 'parcours', description: 'Point de présence gendarmerie N°1.', lat: 45.065000, lng: 6.038000 },
+  { id: '19', nom: 'Gendarmerie 2', categorie: 'parcours', description: 'Point de présence gendarmerie N°2.', lat: 45.070000, lng: 6.045000 },
+  { id: '20', nom: 'Ravitaillement 1', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.067131, lng: 6.043949 },
+  { id: '21', nom: 'Ravitaillement 2', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.076442, lng: 6.048164 },
+  { id: '22', nom: 'Service médical', categorie: 'parcours', description: 'Présence des secouristes et service médical.', lat: 45.078000, lng: 6.052000 },
+  { id: '23', nom: 'Ravitaillement 3', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.080173, lng: 6.057293 },
+  { id: '24', nom: 'Ravitaillement 4', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.085000, lng: 6.063000 },
+  // Village arrivée (25–36)
+  { id: '25', nom: "Arrivée MAH 2026 (arrêt chrono)", categorie: 'arrivee', description: 'Arrêt officiel du chronomètre.', lat: 45.090377, lng: 6.071327 },
+  { id: '26', nom: "Arrivée réelle + récupération t-shirts", categorie: 'arrivee', description: 'Arrivée réelle (PMM) — récupération des t-shirts et sacs vestiaires.', lat: 45.089715, lng: 6.074902 },
+  { id: '27', nom: 'Parc vélo', categorie: 'arrivee', description: 'Zone de stationnement sécurisé pour les vélos.', lat: 45.089500, lng: 6.073500 },
+  { id: '28', nom: 'Partenaires', categorie: 'arrivee', description: 'Stands partenaires : RaidLight, Unéo, Crédit Mutuel.', lat: 45.089200, lng: 6.073000 },
+  { id: '29', nom: 'Kiné / Ostéo', categorie: 'arrivee', description: 'Soins kinésithérapie et ostéopathie pour les participants.', lat: 45.089000, lng: 6.072800 },
+  { id: '30', nom: 'Photocall', categorie: 'arrivee', description: 'Bâche photo 3m x 4m — immortalisez votre arrivée !', lat: 45.088800, lng: 6.072600 },
+  { id: '31', nom: 'Car podium', categorie: 'arrivee', description: 'Scène podium pour les remises de prix.', lat: 45.088617, lng: 6.072327 },
+  { id: '32', nom: 'Zone restauration', categorie: 'arrivee', description: 'Restauration et boissons pour les participants.', lat: 45.088400, lng: 6.072100 },
+  { id: '33', nom: 'Chaîne buffet alimentation', categorie: 'arrivee', description: 'Buffet alimentation pour les participants.', lat: 45.088300, lng: 6.072000 },
+  { id: '34', nom: 'Popotte boissons', categorie: 'arrivee', description: 'Boissons et ravitaillement à l\'arrivée.', lat: 45.088617, lng: 6.073000 },
+  { id: '35', nom: 'Parking véhicules', categorie: 'arrivee', description: 'Parking véhicules village arrivée.', lat: 45.088565, lng: 6.073500 },
+  { id: '36', nom: 'Navette BUS AH → BO', categorie: 'arrivee', description: 'Navette gratuite Alpe d\'Huez → Bourg d\'Oisans.', lat: 45.088565, lng: 6.072774 },
+  { id: '37', nom: 'Service médical arrivée', categorie: 'arrivee', description: 'Présence des secouristes assurant la sécurité à l\'arrivée.', lat: 45.088200, lng: 6.071800 },
+];
+
+// ═══════════════════════════════════════
+//  COULEURS
+// ═══════════════════════════════════════
+const COLORS = {
+  depart:   '#3ecf8e',
+  parcours: '#4a9eff',
+  arrivee:  '#ef5b5b',
+};
+const CAT_LABELS = {
+  depart:   'Village départ',
+  parcours: 'Parcours',
+  arrivee:  "Village d'arrivée",
+};
+
+// ═══════════════════════════════════════
+//  CARTE
+// ═══════════════════════════════════════
+const map = L.map('map', {
+  center: CENTER,
+  zoom: 13,
+  zoomControl: true,
+  maxBounds: [
+    [CENTER[0] - 0.045, CENTER[1] - 0.060],
+    [CENTER[0] + 0.045, CENTER[1] + 0.060],
+  ],
+  maxBoundsViscosity: 0.9,
+  minZoom: 13,
+  maxZoom: 19,
+});
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '',
+  maxZoom: 19,
+}).addTo(map);
+
+// ── Tracés GPX ──
+L.polyline(GPX_DEPOSE_BUS, { color: '#3ecf8e', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map);
+L.polyline(GPX_MONTEE,     { color: '#e8c547', weight: 4, opacity: 0.9 }).addTo(map);
+L.polyline(GPX_ACCES_BUS,  { color: '#ef5b5b', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map);
+
+// ── Géolocalisation utilisateur ──
+const userIcon = L.divIcon({
+  className: '',
+  html: '<div class="user-dot"></div>',
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
+});
+
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(pos => {
+    const ll = [pos.coords.latitude, pos.coords.longitude];
+    if (!window._userMarker) {
+      window._userMarker = L.marker(ll, { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+    } else {
+      window._userMarker.setLatLng(ll);
+    }
+  }, null, { enableHighAccuracy: true });
+}
+
+// ═══════════════════════════════════════
+//  MARQUEURS STANDS
+// ═══════════════════════════════════════
+const markers = {};
+let activePopup = null;
+let activeStandId = null;
+
+function makeStandIcon(stand, isActive) {
+  const color = COLORS[stand.categorie];
+  const border = isActive ? '#e8c547' : '#fff';
+  const size = isActive ? 34 : 28;
+  const fs = isActive ? 10 : 9;
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:${size}px;height:${size}px;
+      background:${color};
+      border:2px solid ${border};
+      border-radius:${size/2}px ${size/2}px ${size/2}px 2px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'tahoma',sans-serif;font-size:${fs}px;font-weight:800;
+      color:#fff;
+      box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    ">${stand.id}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -(size + 8)],
+  });
+}
+
+function openStandPopup(stand) {
+  const color = COLORS[stand.categorie];
+  if (activePopup) { map.closePopup(activePopup); }
+
+  document.querySelectorAll('.stand-item').forEach(el => el.classList.remove('active'));
+  const li = document.getElementById('li-' + stand.id);
+  if (li) {
+    li.classList.add('active');
+    const currentTab = document.querySelector('.tab-content.active');
+    if (!currentTab || currentTab.id !== 'tab-' + stand.categorie) {
+      switchTab(stand.categorie);
+    }
+    setTimeout(() => li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 100);
+  }
+
+  if (activeStandId && markers[activeStandId]) {
+    const prev = stands.find(s => s.id === activeStandId);
+    if (prev) markers[prev.id].setIcon(makeStandIcon(prev, false));
+  }
+  activeStandId = stand.id;
+  markers[stand.id].setIcon(makeStandIcon(stand, true));
+
+  const popupContent = `
+    <div class="stand-popup">
+      <div class="stand-popup-header">
+        <div class="stand-popup-badge" style="background:${color}">${stand.id}</div>
+        <div class="stand-popup-name">${stand.nom}</div>
+      </div>
+      <div class="stand-popup-cat" style="color:${color}">${CAT_LABELS[stand.categorie]}</div>
+      <div class="stand-popup-desc">${stand.description}</div>
+    </div>`;
+
+  activePopup = L.popup({
+    closeButton: false,
+    autoClose: false,
+    closeOnClick: false,
+    className: 'custom-popup',
+    offset: [0, -60],
+    autoPan: true,
+    autoPanPaddingTopLeft: [10, 60],
+    autoPanPaddingBottomRight: [10, 280],
+  })
+    .setLatLng([stand.lat, stand.lng])
+    .setContent(popupContent)
+    .openOn(map);
+}
+
+stands.forEach(stand => {
+  const marker = L.marker([stand.lat, stand.lng], {
+    icon: makeStandIcon(stand, false),
+  }).addTo(map);
+
+  marker.on('click', () => {
+    map.setView([stand.lat, stand.lng], Math.max(map.getZoom(), 17), { animate: true });
+    setTimeout(() => openStandPopup(stand), 300);
+  });
+
+  markers[stand.id] = marker;
+});
+
+map.on('click', e => {
+  if (!e.originalEvent.target.closest?.('.leaflet-marker-icon')) {
+    if (activePopup) { map.closePopup(activePopup); activePopup = null; }
+    if (activeStandId) {
+      const prev = stands.find(s => s.id === activeStandId);
+      if (prev) markers[prev.id].setIcon(makeStandIcon(prev, false));
+      activeStandId = null;
+    }
+    document.querySelectorAll('.stand-item').forEach(el => el.classList.remove('active'));
+  }
+});
+
+// ═══════════════════════════════════════
+//  LISTE DES STANDS
+// ═══════════════════════════════════════
+['depart', 'parcours', 'arrivee'].forEach(cat => {
+  const container = document.getElementById('tab-' + cat);
+  stands.filter(s => s.categorie === cat).forEach(stand => {
+    const color = COLORS[stand.categorie];
+    const div = document.createElement('div');
+    div.className = 'stand-item';
+    div.id = 'li-' + stand.id;
+    div.innerHTML = `
+      <div class="stand-badge" style="background:${color}">${stand.id}</div>
+      <div class="stand-info">
+        <div class="stand-name">${stand.nom}</div>
+        <div class="stand-desc">${stand.description}</div>
+      </div>
+      <div class="stand-num">#${stand.id}</div>`;
+    div.addEventListener('click', () => {
+      map.setView(CENTER, 13, { animate: true });
+      setTimeout(() => {
+        map.setView([stand.lat, stand.lng], 18, { animate: true });
+        setTimeout(() => openStandPopup(stand), 500);
+      }, 600);
+    });
+    container.appendChild(div);
+  });
+});
+
+// ═══════════════════════════════════════
+//  ONGLETS
+// ═══════════════════════════════════════
+function switchTab(cat) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + cat));
+}
+</script>
+</body>
+</html>
