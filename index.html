@@ -218,21 +218,21 @@ const stands = [
 { id: '12', nom: 'Retrait dossards vélo', categorie: 'depart', description: 'Retrait des dossards pour la course cycliste.', lat: 45.061528, lng: 6.027449 },
 { id: '13', nom: 'WC', categorie: 'depart', description: 'Toilettes publiques.', lat: 45.061458, lng: 6.027882 },
 { id: '14', nom: 'Sas de contrôle des départs', categorie: 'depart', description: 'Contrôle des dossards avant le départ.', lat: 45.061787, lng: 6.027376 },
-{ id: '15', nom: 'Arche de départ', categorie: 'depart', description: 'Arche officielle de départ.', lat: 45.062169, lng: 6.029606 },
-{ id: '16', nom: 'Départ du chrono (réel)', categorie: 'depart', description: 'Le chronomètre commence ici.', lat: 45.064943, lng: 6.039969 },
 
-// Parcours (17–24)
-
+// Parcours (14–26)
+  
+{ id: '15', nom: 'Arche de départ', categorie: 'parcours', description: 'Arche officielle de départ.', lat: 45.062169, lng: 6.029606 },
+{ id: '16', nom: 'Départ du chrono (réel)', categorie: 'parcours', description: 'Le chronomètre commence ici.', lat: 45.064943, lng: 6.039969 },
 { id: '20', nom: 'Ravitaillement 1', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.067140, lng: 6.043972 },
 { id: '21', nom: 'Ravitaillement 2', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.076446, lng: 6.048153 },
 { id: '22', nom: 'Service médical', categorie: 'parcours', description: 'Présence des secouristes et service médical.', lat: 45.076603, lng: 6.047272 },
 { id: '23', nom: 'Ravitaillement 3', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.080120, lng: 6.057200 },
-{ id: '24', nom: 'Ravitaillement 4', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.080120, lng: 6.057200 },
+{ id: '24', nom: 'Ravitaillement 4', categorie: 'parcours', description: 'Ravitaillement — reprise des forces et réhydratation.', lat: 45.091478, lng: 6.055581 },
+{ id: '25', nom: "Arrivée MAH 2026 (arrêt chrono)", categorie: 'parcours', description: 'Arrêt officiel du chronomètre.', lat: 45.090306, lng: 6.071300 },
+{ id: '26', nom: "Arrivée réelle + récupération t-shirts", categorie: 'parcours', description: 'Arrivée réelle (PMM) — récupération des t-shirts et sacs vestiaires.', lat: 45.088560, lng: 6.072487 },
 
-// Village arrivée (25–36)
+// Village arrivée (27–36)
 
-{ id: '25', nom: "Arrivée MAH 2026 (arrêt chrono)", categorie: 'arrivee', description: 'Arrêt officiel du chronomètre.', lat: 45.090306, lng: 6.071300 },
-{ id: '26', nom: "Arrivée réelle + récupération t-shirts", categorie: 'arrivee', description: 'Arrivée réelle (PMM) — récupération des t-shirts et sacs vestiaires.', lat: 45.088560, lng: 6.072487 },
 { id: '27', nom: 'Parc vélo', categorie: 'arrivee', description: 'Zone de stationnement sécurisé pour les vélos.', lat: 45.088726, lng: 6.072769 },
 { id: '28', nom: 'Partenaires', categorie: 'arrivee', description: 'Stands partenaires : RaidLight, Unéo, Crédit Mutuel.', lat: 45.088808, lng: 6.072824 },
 { id: '29', nom: 'Kiné / Ostéo', categorie: 'arrivee', description: 'Soins kinésithérapie et ostéopathie pour les participants.', lat: 45.088794, lng: 6.072704 },
@@ -283,7 +283,7 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 
 // ── Tracés GPX ──
 L.polyline(GPX_DEPOSE_BUS, { color: '#3ecf8e', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map);
-L.polyline(GPX_MONTEE,     { color: '#e8c547', weight: 4, opacity: 0.9 }).addTo(map);
+L.polyline(GPX_MONTEE,     { color: '#4a9eff', weight: 4, opacity: 0.9 }).addTo(map);
 L.polyline(GPX_ACCES_BUS,  { color: '#ef5b5b', weight: 3, opacity: 0.85, dashArray: '6,4' }).addTo(map);
 
 // ── Géolocalisation utilisateur ──
