@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
  <style>
     :root {
       --bg: #0f1117;
@@ -388,7 +389,46 @@ L.tileLayer('https://server.arcgisonline.com/ArcGis/rest/services/World_Imagery/
   subdomains: 'abcd',
   maxZoom: 22,
 }).addTo(map);
-
+  
+new L.GPX('depose_de_bus_village_depart_mah_2026-24271588-1780585105-921.gpx', {
+  async: true,
+  polyline_options: {
+    color: '#e8c547',    // couleur du tracé (ici doré comme votre accent)
+    weight: 3,           // épaisseur du trait
+    opacity: 0.9,
+  },
+  marker_options: {
+    startIconUrl: null,  // pas d'icône de départ
+    endIconUrl: null,    // pas d'icône d'arrivée
+    shadowUrl: null,
+  }
+}).addTo(map);
+  new L.GPX('montee_de_lalpe_dhuez_2026-24276311-1780642378-396.gpx', {
+  async: true,
+  polyline_options: {
+    color: '#bd5547',    // couleur du tracé (ici doré comme votre accent)
+    weight: 3,           // épaisseur du trait
+    opacity: 0.9,
+  },
+  marker_options: {
+    startIconUrl: null,  // pas d'icône de départ
+    endIconUrl: null,    // pas d'icône d'arrivée
+    shadowUrl: null,
+  }
+}).addTo(map);
+  new L.GPX('acces_bus_retour_pmm_bus-24276748-1780645258-613.gpx', {
+  async: true,
+  polyline_options: {
+    color: '#d5g547',    // couleur du tracé (ici doré comme votre accent)
+    weight: 3,           // épaisseur du trait
+    opacity: 0.9,
+  },
+  marker_options: {
+    startIconUrl: null,  // pas d'icône de départ
+    endIconUrl: null,    // pas d'icône d'arrivée
+    shadowUrl: null,
+  }
+}).addTo(map);
 // ── Marqueur position utilisateur ──
 const userIcon = L.divIcon({
   className: '',
