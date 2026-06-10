@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<gpx version="1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
+    creator="Openrunner - https://www.openrunner.com" >	<trk>
+	                   <name>dépose de bus -&gt; Village départ MAH 2026-24271588</name>
+						<trkseg>
+					<trkpt lat="45.063050" lon="6.024610">
+						<ele>718</ele>
+						<time>2026-06-04T14:58:25Z</time>
+					</trkpt>
+					<trkpt lat="45.063050" lon="6.024680">
+						<ele>718</ele>
+						<time>2026-06-04T14:58:32Z</time>
+					</trkpt>
+					<trkpt lat="45.063110" lon="6.024770">
+						<ele>718</ele>
+						<time>2026-06-04T14:58:43Z</time>
+					</trkpt>
+					<trkpt lat="45.063190" lon="6.024810">
+						<ele>718</ele>
+						<time>2026-06-04T14:58:55Z</time>
+					</trkpt>
+					<trkpt lat="45.063080" lon="6.024900">
+						<ele>718</ele>
+						<time>2026-06-04T14:59:12Z</time>
+					</trkpt>
+					<trkpt lat="45.062960" lon="6.024980">
+						<ele>718</ele>
+						<time>2026-06-04T14:59:29Z</time>
+					</trkpt>
+					<trkpt lat="45.062970" lon="6.024910">
+						<ele>718</ele>
+						<time>2026-06-04T14:59:36Z</time>
+					</trkpt>
+					<trkpt lat="45.062960" lon="6.024980">
+						<ele>718</ele>
+						<time>2026-06-04T14:59:43Z</time>
+					</trkpt>
+					<trkpt lat="45.062640" lon="6.025220">
+						<ele>718</ele>
+						<time>2026-06-04T15:00:31Z</time>
+					</trkpt>
+					<trkpt lat="45.062300" lon="6.025480">
+						<ele>718</ele>
+						<time>2026-06-04T15:01:23Z</time>
+					</trkpt>
+					<trkpt lat="45.062360" lon="6.025620">
+						<ele>718</ele>
+						<time>2026-06-04T15:01:38Z</time>
+					</trkpt>
+					<trkpt lat="45.062400" lon="6.025830">
+						<ele>719</ele>
+						<time>2026-06-04T15:01:59Z</time>
+					</trkpt>
+					<trkpt lat="45.062330" lon="6.025850">
+						<ele>718</ele>
+						<time>2026-06-04T15:02:08Z</time>
+					</trkpt>
+					<trkpt lat="45.062320" lon="6.025840">
+						<ele>718</ele>
+						<time>2026-06-04T15:02:10Z</time>
+					</trkpt>
+					<trkpt lat="45.062300" lon="6.025710">
+						<ele>718</ele>
+						<time>2026-06-04T15:02:22Z</time>
+					</trkpt>
+					<trkpt lat="45.062280" lon="6.025670">
+						<ele>718</ele>
+						<time>2026-06-04T15:02:27Z</time>
+					</trkpt>
+					<trkpt lat="45.062210" lon="6.025670">
+						<ele>718</ele>
+						<time>2026-06-04T15:02:36Z</time>
+					</trkpt>
+					<trkpt lat="45.062110" lon="6.025720">
+						<ele>717</ele>
+						<time>2026-06-04T15:02:50Z</time>
+					</trkpt>
+					<trkpt lat="45.061730" lon="6.026000">
+						<ele>716</ele>
+						<time>2026-06-04T15:03:48Z</time>
+					</trkpt>
+					<trkpt lat="45.061720" lon="6.026030">
+						<ele>715</ele>
+						<time>2026-06-04T15:03:51Z</time>
+					</trkpt>
+					<trkpt lat="45.061680" lon="6.026170">
+						<ele>715</ele>
+						<time>2026-06-04T15:04:05Z</time>
+					</trkpt>
+					<trkpt lat="45.061660" lon="6.026190">
+						<ele>715</ele>
+						<time>2026-06-04T15:04:08Z</time>
+					</trkpt>
+					<trkpt lat="45.061290" lon="6.026470">
+						<ele>716</ele>
+						<time>2026-06-04T15:05:04Z</time>
+					</trkpt>
+					<trkpt lat="45.061240" lon="6.026540">
+						<ele>716</ele>
+						<time>2026-06-04T15:05:14Z</time>
+					</trkpt>
+					<trkpt lat="45.061250" lon="6.026580">
+						<ele>716</ele>
+						<time>2026-06-04T15:05:18Z</time>
+					</trkpt>
+					<trkpt lat="45.061350" lon="6.026680">
+						<ele>716</ele>
+						<time>2026-06-04T15:05:34Z</time>
+					</trkpt>
+					<trkpt lat="45.061450" lon="6.026830">
+						<ele>716</ele>
+						<time>2026-06-04T15:05:53Z</time>
+					</trkpt>
+					<trkpt lat="45.061680" lon="6.027250">
+						<ele>715</ele>
+						<time>2026-06-04T15:06:43Z</time>
+					</trkpt>
+					<trkpt lat="45.061680" lon="6.027260">
+						<ele>715</ele>
+						<time>2026-06-04T15:06:44Z</time>
+					</trkpt>
+					</trkseg>
+				</trk>
+			</gpx>
